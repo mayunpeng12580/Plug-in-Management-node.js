@@ -8,11 +8,10 @@ const bodyParser = require("body-parser");
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false}));
 
-//获取用户列表
-router.get('/getUserlist', (req, res) => {
+//获取路由列表
+router.get('/getRoutelist', (req, res) => {
     
-    // sql = 'SELECT * FROM user';
-    sql = 'SELECT user.*, auth.title, auth.rules FROM user LEFT JOIN auth ON user.auth = auth.id';
+    sql = 'SELECT * FROM rule';
 
     //查询
     connection.query(sql, (err, result) => {
@@ -20,7 +19,6 @@ router.get('/getUserlist', (req, res) => {
               console.log('[SELECT ERROR] - ',err.message);
               return  res.status(404).json('没有任何内容');
             }
-            res.set("Access-Control-Allow-Origin", "*");
             res.status(200);
             res.json(result);
 
@@ -28,42 +26,41 @@ router.get('/getUserlist', (req, res) => {
 
 } ) 
 
-//获取用户详情
-router.get('/getUser/:id', (req, res) => {
+//获取路由详情
+router.get('/getRoute/:id', (req, res) => {
     
-    sql = 'SELECT * FROM view_user_auth where id = ' + req.params.id
+    sql = 'SELECT * FROM rule where id = ' + req.params.id 
+
     //查询
     connection.query(sql, (err, result) => {
             if(err){
               console.log('[SELECT ERROR] - ',err.message);
               return  res.status(404).json('没有任何内容');
             }
-            res.set("Access-Control-Allow-Origin", "*");
             res.status(200);
             res.json(result);
 
     });
+
 } ) 
 
-//增加用户
-router.post('/addUser', (req, res) => {
-     let isSame = 'SELECT * FROM user where name = "' + req.body.name + '"';
-     res.set("Access-Control-Allow-Origin", "*");
+//增加路由
+router.post('/addRoute', (req, res) => {
+     let isSame = 'SELECT * FROM rule where title = "' + req.body.title + '"';
      connection.query(isSame, (err, re)=>{
-        
          if (re.length !== 0) {
             res.status(200);
             res.json("添加失败，用户名重复");
             return;
          }
 
-         var  addSql = 'INSERT INTO user(name,password,auth) VALUES(?,?,?)';
+         var  addSql = 'INSERT INTO rule(title,pid,icon,path,o,type) VALUES(?,?,?,?,?,?)';
          
-         var  addSqlParams = [req.body.name, req.body.password, req.body.auth || 2];;
+         var  addSqlParams = [req.body.title, req.body.pid - 0, req.body.icon, req.body.path, req.body.o, req.body.type];;
        
          //执行sql添加用户
          connection.query(addSql,addSqlParams, (err, result) => {
-               
+               res.set("Access-Control-Allow-Origin", "*");
                  if(err){
                  console.log('[INSERT ERROR] - ',err.message);
                  return res.status(404).json('添加失败');;
@@ -77,9 +74,9 @@ router.post('/addUser', (req, res) => {
 
   } ) 
  
-//删除用户
-router.get("/deleteUser/:id", (req, res) => {
-    var delSql = 'DELETE FROM user where id=' + req.params.id;
+//删除路由
+router.get("/deleteRoute/:id", (req, res) => {
+    var delSql = 'DELETE FROM rule where id=' + req.params.id;
     //删
     connection.query(delSql,function (err, result) {
             if(err){
@@ -93,9 +90,9 @@ router.get("/deleteUser/:id", (req, res) => {
     
   })
 
-//编辑用户信息
-router.post("/editUser", (req, res) => {
-    sql = 'SELECT * FROM user where id = ' + req.body.id 
+//编辑路由信息
+router.post("/editRoute", (req, res) => {
+    sql = 'SELECT * FROM rule where id = ' + req.body.id 
 
     //查询
     connection.query(sql, (err, re) => {
@@ -104,29 +101,32 @@ router.post("/editUser", (req, res) => {
               return  res.status(404).json('没有任何内容');
             }
             console.log(re[0])
-            var modSql = 'UPDATE user SET name = ? , password = ? WHERE id = ?';
+            var modSql = 'UPDATE rule SET title = ? , pid = ? , icon = ? , path = ? , o = ? , type = ? WHERE id = ?';
             var modSqlParams = [];
 
-            modSqlParams[0] = req.body.name || re[0].name;
-            modSqlParams[1] = req.body.password || re[0].password;
-            modSqlParams[2] = (req.body.id);
+            modSqlParams[0] = req.body.title || re[0].title;
+            modSqlParams[1] = req.body.pid || re[0].pid;
+            modSqlParams[2] = req.body.icon || re[0].icon;
+            modSqlParams[3] = req.body.path || re[0].path;
+            modSqlParams[4] = req.body.o || re[0].o;
+            modSqlParams[5] = req.body.type || re[0].type;
+            modSqlParams[6] = (req.body.id);
             console.log(modSqlParams)
             connection.query(modSql,modSqlParams,function (err, result) {
-            res.set("Access-Control-Allow-Origin", "*");
-            if(err){
-                    return res.status(404).json('修改失败');;;
-            }        
-            
-            res.status(200);
-            res.json(result);
+              if(err){
+                      return res.status(404).json('修改失败');;;
+              }        
+              
+              res.status(200);
+              let data = {};
+              data.data = modSqlParams;
+              data.message = '修改成功！！！';
+              
+              res.send(data);
             });
 
     });
 
-    
-    
-    // connection.end();
-   
   })
   
 
