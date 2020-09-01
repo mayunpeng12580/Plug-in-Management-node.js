@@ -8,11 +8,10 @@ const bodyParser = require("body-parser");
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false}));
 
-//获取用户列表
-router.get('/getUserlist', (req, res) => {
+//获取用户組列表
+router.get('/getAuthlist', (req, res) => {
     
-    // sql = 'SELECT * FROM user';
-    sql = 'SELECT user.*, auth.title, auth.rules FROM user LEFT JOIN auth ON user.auth = auth.id';
+    sql = 'SELECT * FROM auth';
 
     //查询
     connection.query(sql, (err, result) => {
@@ -28,10 +27,10 @@ router.get('/getUserlist', (req, res) => {
 
 } ) 
 
-//获取用户详情
-router.get('/getUser/:id', (req, res) => {
+//获取用户组详情
+router.get('/getAuth/:id', (req, res) => {
     
-    sql = 'SELECT * FROM view_user_auth where id = ' + req.params.id
+    sql = req.params.id ? 'SELECT * FROM auth where id = ' + req.params.id : 'SELECT * FROM auth'
 
     //查询
     connection.query(sql, (err, result) => {
@@ -47,9 +46,9 @@ router.get('/getUser/:id', (req, res) => {
 
 } ) 
 
-//增加用户
-router.post('/addUser', (req, res) => {
-     let isSame = 'SELECT * FROM user where name = "' + req.body.name + '"';
+//增加用户组
+router.post('/addAuth', (req, res) => {
+     let isSame = 'SELECT * FROM auth where title = "' + req.body.title + '"';
      connection.query(isSame, (err, re)=>{
          if (re.length !== 0) {
             res.status(200);
@@ -57,9 +56,9 @@ router.post('/addUser', (req, res) => {
             return;
          }
 
-         var  addSql = 'INSERT INTO user(name,password,auth) VALUES(?,?,?)';
+         var  addSql = 'INSERT INTO auth(title,rules) VALUES(?,?)';
          
-         var  addSqlParams = [req.body.name, req.body.password, req.body.auth || 2];;
+         var  addSqlParams = [req.body.title, req.body.rules];;
        
          //执行sql添加用户
          connection.query(addSql,addSqlParams, (err, result) => {
@@ -77,9 +76,9 @@ router.post('/addUser', (req, res) => {
 
   } ) 
  
-//删除用户
-router.get("/deleteUser/:id", (req, res) => {
-    var delSql = 'DELETE FROM user where id=' + req.params.id;
+//删除用户组
+router.get("/deleteAuth/:id", (req, res) => {
+    var delSql = 'DELETE FROM auth where id=' + req.params.id;
     //删
     connection.query(delSql,function (err, result) {
             if(err){
@@ -93,9 +92,9 @@ router.get("/deleteUser/:id", (req, res) => {
     
   })
 
-//编辑用户信息
+//编辑用户组信息
 router.post("/editUser", (req, res) => {
-    sql = 'SELECT * FROM user where id = ' + req.body.id 
+    sql = 'SELECT * FROM auth where id = ' + req.body.id 
 
     //查询
     connection.query(sql, (err, re) => {
@@ -104,11 +103,11 @@ router.post("/editUser", (req, res) => {
               return  res.status(404).json('没有任何内容');
             }
             console.log(re[0])
-            var modSql = 'UPDATE user SET name = ? , password = ? WHERE id = ?';
+            var modSql = 'UPDATE auth SET title = ? , rules = ? WHERE id = ?';
             var modSqlParams = [];
 
-            modSqlParams[0] = req.body.name || re[0].name;
-            modSqlParams[1] = req.body.password || re[0].password;
+            modSqlParams[0] = req.body.title || re[0].title;
+            modSqlParams[1] = req.body.rules || re[0].rules;
             modSqlParams[2] = (req.body.id);
             console.log(modSqlParams)
             connection.query(modSql,modSqlParams,function (err, result) {
@@ -123,10 +122,6 @@ router.post("/editUser", (req, res) => {
 
     });
 
-    
-    
-    // connection.end();
-   
   })
   
 
