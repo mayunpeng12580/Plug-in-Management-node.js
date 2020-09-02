@@ -11,7 +11,8 @@ app.use(bodyParser.urlencoded({ extended: false}));
 
 //登录
 router.post('/login', (req, res) => {
-     connection.query(isSame, (err, re)=>{
+      let isSame = 'SELECT * FROM user where name = "' + req.body.name + '" and password = "' + req.body.password + '"';
+      connection.query(isSame, (err, re)=>{
         if(err){
           return res.status(404).json('用户名或密码错误！！！');;
           }
@@ -23,7 +24,11 @@ router.post('/login', (req, res) => {
          }
 
           res.status(200);
-          res.json("登录成功");
+          let data = {
+             data: [],
+             message: "登录成功"
+          }
+          res.json(data);
 
      })
 
