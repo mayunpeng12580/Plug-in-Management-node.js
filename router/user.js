@@ -86,6 +86,7 @@ router.get("/deleteUser/:id", (req, res) => {
               console.log('[DELETE ERROR] - ',err.message);
               return res.status(404).json('删除失败');
             }        
+            console.log(result)
             res.set("Access-Control-Allow-Origin", "*");
             res.status(200);
           res.json('删除成功');
@@ -96,20 +97,20 @@ router.get("/deleteUser/:id", (req, res) => {
 //编辑用户信息
 router.post("/editUser", (req, res) => {
     sql = 'SELECT * FROM user where id = ' + req.body.id 
-
+    console.log(req.body)
     //查询
     connection.query(sql, (err, re) => {
             if(err){
               console.log('[SELECT ERROR] - ',err.message);
               return  res.status(404).json('没有任何内容');
             }
-            console.log(re[0])
-            var modSql = 'UPDATE user SET name = ? , password = ? WHERE id = ?';
+            var modSql = 'UPDATE user SET name = ? , password = ?, auth = ? WHERE id = ?';
             var modSqlParams = [];
 
             modSqlParams[0] = req.body.name || re[0].name;
             modSqlParams[1] = req.body.password || re[0].password;
-            modSqlParams[2] = (req.body.id);
+            modSqlParams[2] = req.body.auth || re[0].auth;
+            modSqlParams[3] = req.body.id;
             console.log(modSqlParams)
             connection.query(modSql,modSqlParams,function (err, result) {
             res.set("Access-Control-Allow-Origin", "*");
